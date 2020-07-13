@@ -123,7 +123,7 @@ test85                     : ok=1    changed=1    unreachable=0    failed=0    s
 
 ## 三、用户提权
 
-由于安全的援用，禁用root用户直接登录，同时对monitor用户提权，以获取root权限。
+由于安全的原因，禁用root用户直接登录，同时对monitor用户提权，以获取root权限。
 
 ### 1.查看提权文件并执行
 
