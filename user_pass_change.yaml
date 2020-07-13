@@ -1,0 +1,19 @@
+#修改用户密码，用户名和密码通过手动输入方式确定
+---
+- hosts: "{{ hostlist }}"
+  remote_user: monitor
+  gather_facts: no
+  vars_prompt:
+    - name: "user_name"
+      prompt: "Enter user name"
+      private: no
+    - name: "user_password"
+      prompt: "Enter user password"
+      encrypt: "sha512_crypt"
+      confirm: yes
+  tasks:
+   - name: pass user
+     user:
+      name: "{{user_name}}"
+      password: "{{user_password}}"
+      update_password: always

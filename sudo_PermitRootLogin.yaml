@@ -1,0 +1,34 @@
+#monitor用户提权并禁用root用户直接登录
+---
+- hosts: "{{ hostlist }}" 
+  remote_user: root 
+  gather_facts: no
+  tasks:
+  - name: sudo monitor 
+    lineinfile:
+      path: /etc/sudoers
+      regexp: 'monitor' 
+      insertafter: 'root.*ALL=\(ALL\).*ALL'
+      line: 'monitor    ALL=(ALL)       ALL'
+      backup: yes
+    register: sudo_monitor 
+    tags: sudo
+  - name: PermitRootLogin 
+    replace:
+      path: /etc/ssh/sshd_config 
+      regexp: '^#PermitRootLogin.*yes.*' 
+      replace: 'PermitRootLogin no'
+      backup: yes 
+    register: root_login 
+    notify:
+      restart sshd
+    tags: login 
+  - name: debug file
+    debug:
+      var: sudo_monitor 
+
+  handlers:
+  - name: restart sshd
+    service:
+      name=sshd
+      state=restarted 

@@ -1,0 +1,42 @@
+#开启命令审计
+---
+- hosts: "{{ hostlist }}" 
+  remote_user: monitor 
+  gather_facts: no
+  tasks:
+  - name: make director audit 
+    file:
+      path: /var/log/shell_audit
+      state: directory 
+    register: director_create
+  - name: make file  log 
+    file:
+      path: /var/log/shell_audit/audit.log
+      state: touch 
+      owner: nobody
+      group: nobody
+      mode: 002
+      attributes: +a 
+    register: file_create
+    tags: file
+  - name: modify profile
+    lineinfile:
+      path: /etc/profile
+      regexp: "{{item.0}}"
+      line: "{{item.1}}"
+    with_together:
+    -
+      - HISTSIZE=
+      - HISTTIMEFORMAT=
+      - HISTORY_FILE=
+      - PROMPT_COMMAND=
+    - 
+      - HISTSIZE=2048
+      - export HISTTIMEFORMAT="[%Y/%m/%d %T]   "
+      - export HISTORY_FILE=/var/log/shell_audit/audit.log
+      - export PROMPT_COMMAND='{ code=$?;thisHistID=`history 1|awk "{print \\$1}"`;lastCommand=`history 1| awk "{\\$1=\"\" ;print}"`;user=`id -un`;whoStr=(`who -u am i`);realUser=${whoStr[0]};logDay=${whoStr[2]};logTime=${whoStr[3]};pid=${whoStr[5]};ip=${whoStr[6]};if [ ${thisHistID}x != ${lastHistID}x ];then echo -E $user\($realUser\)@$ip [PID:$pid] [LOGIN:$logDay $logTime] --- [$PWD]$lastCommand [$code] [`date "+%Y/%m/%d %H:%M:%S"`];lastHistID=$thisHistID;fi; } >> $HISTORY_FILE' 
+    register: modify
+    tags: modify
+  - name: debug file
+    debug:
+      var: modify 

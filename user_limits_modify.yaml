@@ -1,0 +1,27 @@
+#monitor用户打开最大文件数修改
+---
+- hosts: "{{ hostlist }}" 
+  remote_user: monitor 
+  gather_facts: no
+  tasks:  
+  - name: monitor limits 
+    lineinfile:
+      path: /etc/security/limits.conf 
+      regexp: "{{item.0}}"
+      line: "{{item.1}}"
+    with_together:
+    -
+      - monitor.*soft.*nproc
+      - monitor.*hard.*nproc
+      - monitor.*soft.*nofile
+      - monitor.*hard.*nofile
+    - 
+      - monitor soft nproc 16384
+      - monitor hard nproc 16384
+      - monitor soft nofile 65536
+      - monitor hard nofile 65536
+    register: modify
+    tags: modify
+  - name: debug file
+    debug:
+      var: modify
